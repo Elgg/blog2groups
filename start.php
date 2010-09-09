@@ -17,6 +17,10 @@ function blog2groups_push_post($event, $object_type, $object) {
 		return;
 	}
 
+	if ($object->access_id == ACCESS_PRIVATE) {
+		return;
+	}
+
 	$url = get_plugin_setting('url', 'blog2groups');
 	if (!$url) {
 		return;
