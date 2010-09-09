@@ -8,8 +8,12 @@ register_elgg_event_handler('init', 'system', 'blog2groups_init');
 
 function blog2groups_init() {
 	register_elgg_event_handler('create', 'object', 'blog2groups_push_post');
+	register_elgg_event_handler('update', 'object', 'blog2groups_check_publish_status');
 }
 
+/**
+ * Push the blog post to the configured site
+ */
 function blog2groups_push_post($event, $object_type, $object) {
 	// work around Elgg bug with subtype
 	$id = get_subtype_id('object', 'blog');
@@ -25,7 +29,7 @@ function blog2groups_push_post($event, $object_type, $object) {
 	if (!$url) {
 		return;
 	}
-	// work around a bug with Elgg encoding parameters
+	// work around a Elgg bug with encoding parameters
 	$url = str_replace('&amp;', '&', $url);
 
 	$body = $object->summary . "\n\n" . $object->description;
@@ -48,5 +52,22 @@ function blog2groups_push_post($event, $object_type, $object) {
 	$result = json_decode($json);
 	if ($result->status != 0) {
 		error_log("Failed to send blog post: $result->message");
+	}
+}
+
+/**
+ * Check for change in access status and push if going from private to public
+ */
+function blog2groups_check_publish_status($event, $object_type, $object) {
+
+	if ($object->getSubtype() !== 'blog') {
+		return;
+	}
+
+	$new_access = get_input('access');
+
+	if ($new_access == ACCESS_PUBLIC && $object->access_id == ACCESS_PRIVATE) {
+		$object->access_id = ACCESS_PUBLIC;
+		blog2groups_push_post($event, $object_type, $object);
 	}
 }
