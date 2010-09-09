@@ -24,10 +24,12 @@ function blog2groups_push_post($event, $object_type, $object) {
 	// work around a bug with Elgg encoding parameters
 	$url = str_replace('&amp;', '&', $url);
 
+	$body = $object->summary . "\n\n" . $object->description;
+
 	$params = array(
 		'username' => $object->getOwnerEntity()->username,
 		'title' => $object->title,
-		'body' => $object->description,
+		'body' => $body,
 	);
 	$post_data = http_build_query($params);
 
